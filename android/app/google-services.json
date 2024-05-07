@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "50631697180",
+    "firebase_url": "https://waste-e0038-default-rtdb.firebaseio.com",
+    "project_id": "waste-e0038",
+    "storage_bucket": "waste-e0038.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50631697180:android:7eebd197b521751fbb10d9",
+        "android_client_info": {
+          "package_name": "com.example.waste_management"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE1SRONjw5yGDhASLs0Wm3eeolyYPvunk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
