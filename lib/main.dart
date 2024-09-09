@@ -2,11 +2,15 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:waste_management/pages/home_page.dart';
+import 'package:waste_management/pages/customer_home_page.dart';
 import 'package:waste_management/pages/landing_page.dart';
 import 'package:waste_management/pages/login_page.dart';
+import 'package:waste_management/pages/manager_home_page.dart';
+import 'package:waste_management/pages/manufa_home_page.dart';
+import 'package:waste_management/pages/post_Item_page.dart';
 import 'package:waste_management/pages/signup_page.dart';
 
+import 'auth.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -17,8 +21,22 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  @override
+  void initState(){
+    print(FirebaseAuth.instance.currentUser?.uid);
+    super.initState();
+  }
+
+  // This widget is the root of your application.
 
   // This widget is the root of your application.
   @override
@@ -29,12 +47,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpPage(),
-        // '/welcome': (context) => LandingPage(),
+        '/customer': (context) => CustomerHomePage(),
+        '/manufacturer': (context) => ManufacHomePage(),
+        '/manager': (context) => ManagerHomePage(),
+        '/welcome': (context) => LandingPage(),
         // '/forget-password': (context) => ForgetPWPage(),
         // '/home': (context) => HomePage(),
-        // '/post-item': (context) => PostItemPage(),
-      },
-      home: FirebaseAuth.instance.currentUser == null ? LandingPage() :HomePage(),
+        '/post-item': (context) => AddItemPage(),
+      },                  //True          False
+      home: FirebaseAuth.instance.currentUser == null ? LandingPage() :CustomerHomePage(),
     );
   }
 }

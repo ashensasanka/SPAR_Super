@@ -1,22 +1,24 @@
 import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import '../Components/custom_snackBar.dart';
 import '../Components/loading.dart';
 import '../comman_var.dart';
 import '../function.dart';
-import 'home_page.dart';
+import 'customer_home_page.dart';
+import 'manager_home_page.dart';
 
-class OpenPostPage extends StatefulWidget {
+class ManagerDetailsPage extends StatefulWidget {
   final Post post;
 
-  OpenPostPage({Key? key, required this.post}) : super(key: key);
+  ManagerDetailsPage({Key? key, required this.post}) : super(key: key);
 
   @override
-  State<OpenPostPage> createState() => _OpenPostPageState();
+  State<ManagerDetailsPage> createState() => _ManagerDetailsPageState();
 }
 
-class _OpenPostPageState extends State<OpenPostPage> {
+class _ManagerDetailsPageState extends State<ManagerDetailsPage> {
   final TextEditingController _commentController = TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
   List<Comment> _comments = [];
@@ -38,7 +40,6 @@ class _OpenPostPageState extends State<OpenPostPage> {
 
     return sum / _ratings.length; // Calculates the average percentage
   }
-
 
   @override
   void initState() {
@@ -69,13 +70,13 @@ class _OpenPostPageState extends State<OpenPostPage> {
 
   void loadRatings() async {
     DatabaseReference ratingsRef =
-    FirebaseDatabase.instance.ref().child("ratings/${widget.post.postID}");
+        FirebaseDatabase.instance.ref().child("ratings/${widget.post.postID}");
 
     DatabaseEvent event = await ratingsRef.once();
 
     if (event.snapshot.exists) {
       Map<String, dynamic> ratingsData =
-      Map<String, dynamic>.from(event.snapshot.value as Map);
+          Map<String, dynamic>.from(event.snapshot.value as Map);
       List<Rating> loadedRatings = [];
       ratingsData.forEach((key, data) {
         loadedRatings.add(Rating.fromMap(Map<String, dynamic>.from(data)));
@@ -110,7 +111,7 @@ class _OpenPostPageState extends State<OpenPostPage> {
       "email": userEmail,
       "user": userName,
       "status": '1',
-      "pres":output
+      "pres": output
       // Add other details as needed
     };
 
@@ -145,10 +146,11 @@ class _OpenPostPageState extends State<OpenPostPage> {
     );
 
     DatabaseReference ratingsRef =
-    FirebaseDatabase.instance.ref().child("ratings/${widget.post.postID}");
+        FirebaseDatabase.instance.ref().child("ratings/${widget.post.postID}");
 
     Map<String, dynamic> ratingDataMap = {
-      "ratingValue": _ratingController.text, // Use the text from the rating controller
+      "ratingValue":
+          _ratingController.text, // Use the text from the rating controller
       "email": userEmail,
       "user": userName,
       "status": '1',
@@ -181,9 +183,7 @@ class _OpenPostPageState extends State<OpenPostPage> {
     }
   }
 
-
   @override
-
   Widget build(BuildContext context) {
     List<double> allValues = [];
     // Calculate the average rating
@@ -197,7 +197,53 @@ class _OpenPostPageState extends State<OpenPostPage> {
     }
     // Calculate the average pres value
     double averagePres = allValues.isEmpty ? 0 : (sumPres / allValues.length);
-    double averagePres1 = averagePres*100;
+    double averagePres1 = averagePres * 100;
+
+    SendOrderReuq() async {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) =>
+            LoadingDialog(messageText: "Posting your ad..."),
+      );
+
+      DatabaseReference postsRef =
+      FirebaseDatabase.instance.ref().child("order/${widget.post.postID}");
+      Map<String, dynamic> postsDataMap = {
+        "photos": widget.post.photos,
+        "deviceType": widget.post.deviceType,
+        "itemType": widget.post.itemType,
+        "model": widget.post.model,
+        "title": widget.post.title,
+        "description": widget.post.description,
+        "price": widget.post.price,
+        "postID": widget.post.postID,
+        "available":widget.post.available,
+        "predictive":widget.post.predictive,
+        "sold":widget.post.sold
+      };
+
+      try {
+        await postsRef.set(postsDataMap);
+        Navigator.pop(context);
+
+        showCustomSnackBar(context,
+            message: 'Sent Order successfully to Manufacturer!',
+            backgroundColor: Colors.green.shade500,
+            textColor: Colors.white,
+            icon: Icons.check_circle_outline_rounded);
+        Navigator.of(context).pushNamed('/manager');
+      } catch (error) {
+        Navigator.pop(context);
+
+        showCustomSnackBar(context,
+            message: 'Failed to upload your post. Please try again.',
+            backgroundColor: Colors.red.shade500,
+            textColor: Colors.white,
+            icon: Icons.error_outline);
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.post.title),
@@ -211,8 +257,10 @@ class _OpenPostPageState extends State<OpenPostPage> {
               child: PageView.builder(
                 itemCount: widget.post.photos.length,
                 itemBuilder: (context, index) {
-                  return Image.network(widget.post.photos[index],
-                      fit: BoxFit.cover);
+                  return Image.network(
+                    widget.post.photos[index],
+                    fit: BoxFit.cover,
+                  );
                 },
               ),
             ),
@@ -227,26 +275,66 @@ class _OpenPostPageState extends State<OpenPostPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Model: ${widget.post.model}',
-                        style: TextStyle(fontSize: 18)),
+                    Text(
+                      'Product: ${widget.post.model}',
+                      style: TextStyle(
+                        fontSize: 18,
+                      ),
+                    ),
                     SizedBox(
                       height: 5,
                     ),
-                    Text('(Device Type: ${widget.post.deviceType})',
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      '(Item Type: ${widget.post.deviceType})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
                     SizedBox(
                       height: 10,
                     ),
                     Text(
                       'Type: ${widget.post.itemType}',
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
                     ),
                     SizedBox(
                       height: 10,
                     ),
                     Text(
-                      'Price: ${widget.post.price}',
+                      'Available Count: ${widget.post.available}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      'Sold Count:  ${widget.post.sold}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      'Next Mounth Predictive Count:  ${widget.post.predictive}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      'Price:  Rs.${widget.post.price}',
                       style:
                           TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
@@ -255,19 +343,45 @@ class _OpenPostPageState extends State<OpenPostPage> {
                     ),
                     Text(
                       '${widget.post.description}',
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
                     ),
-
                     SizedBox(
                       height: 20,
                     ),
-
-                    Text('Comments: ',
-                        style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold)),
-
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        SendOrderReuq();
+                      },
+                      icon: Icon(
+                        Icons.add_shopping_cart,
+                        color: Colors.black,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        fixedSize: const Size(160, 20),
+                        backgroundColor: Colors
+                            .amberAccent, // Set the background color to green
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              30), // Set the border radius
+                        ),
+                      ),
+                      label: Text(
+                        'Order Item',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    Text(
+                      'Comments: ',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Container(
-                      height: 150,
+                      height: 250,
                       color: Colors.white,
                       child: Column(
                         children: [
@@ -277,9 +391,11 @@ class _OpenPostPageState extends State<OpenPostPage> {
                                 ? ListView.builder(
                                     itemCount: _comments.length,
                                     itemBuilder: (context, index) {
-                                      String stringValue = _comments[index].pres;
-                                      double doubleValue = double.parse(stringValue)*10;
-                                      double Value = 1-doubleValue;
+                                      String stringValue =
+                                          _comments[index].pres;
+                                      // double doubleValue =
+                                      //     double.parse(stringValue) * 10;
+                                      // double Value = 1 - doubleValue;
                                       return ListTile(
                                         title: Row(
                                           children: [
@@ -306,101 +422,39 @@ class _OpenPostPageState extends State<OpenPostPage> {
                             child: LinearProgressIndicator(
                               value: averagePres,
                               backgroundColor: Colors.red,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.green),
                             ),
                           ),
                           Row(
                             children: [
-                              SizedBox(width: 20,),
-                              Text('Positive : ${averagePres1.toStringAsFixed(2)} %' ),
-                              SizedBox(width: 430,),
+                              SizedBox(
+                                width: 20,
+                              ),
+                              Text(
+                                  'Positive : ${averagePres1.toStringAsFixed(2)} %'),
+                              SizedBox(
+                                width: 430,
+                              ),
                               Text('Nagative'),
                             ],
                           ),
-                          SizedBox(height: 10,),
-                          Expanded(
-                            flex: 2,
-                            // Ensure the TextField has constraints
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 4,
-                                  child: TextField(
-                                    controller: _commentController,
-                                    decoration: InputDecoration(
-                                      hintText: "Add your comment",
-                                      fillColor: Colors
-                                          .grey.shade300, // Gray fill color
-                                      filled: true,
-                                      border: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.black),
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.black, width: 2.0),
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.black, width: 2.0),
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10.0),
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        createNewComment();
-                                      },
-                                      icon: Icon(
-                                        Icons.comment_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        fixedSize: const Size(160, 20),
-                                        backgroundColor: Colors
-                                            .amberAccent, // Set the background color to green
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              30), // Set the border radius
-                                        ),
-                                      ),
-                                      label: Text(
-                                        'Save',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
+                          SizedBox(
+                            height: 10,
                           ),
                         ],
                       ),
                     ),
-
                     SizedBox(
                       height: 10,
                     ),
-
-
-
                     Row(
                       children: [
                         Expanded(
                           flex: 1,
-                          child: Text('Average Rating:',style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
+                          child: Text('Average Rating:',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
                         Expanded(
                           flex: 3,
@@ -409,15 +463,13 @@ class _OpenPostPageState extends State<OpenPostPage> {
                         // ...
                       ],
                     ),
-
                     SizedBox(
                       height: 10,
                     ),
-
                     Text('Ratings: ',
                         style: TextStyle(
-                            fontSize: 18,)),
-
+                          fontSize: 18,
+                        )),
                     Container(
                       height: 100,
                       color: Colors.white,
@@ -427,99 +479,32 @@ class _OpenPostPageState extends State<OpenPostPage> {
                             flex: 3,
                             child: _ratings.isNotEmpty
                                 ? ListView.builder(
-                              itemCount: _ratings.length,
-                              itemBuilder: (context, index) {
-                                double ratingValue = double.tryParse(_ratings[index].ratingValue) ?? 0;
-                                return ListTile(
-                                  title: Text(
-                                    "${_ratings[index].user}:",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                  subtitle: buildStars(ratingValue), // Convert rating value to percentage
-                                );
-                              },
-                            )
+                                    itemCount: _ratings.length,
+                                    itemBuilder: (context, index) {
+                                      double ratingValue = double.tryParse(
+                                              _ratings[index].ratingValue) ??
+                                          0;
+                                      return ListTile(
+                                        title: Text(
+                                          "${_ratings[index].user}:",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                        subtitle: buildStars(
+                                            ratingValue), // Convert rating value to percentage
+                                      );
+                                    },
+                                  )
                                 : Center(child: Text('No ratings yet')),
                           ),
-
                         ],
                       ),
                     ),
-
                     SizedBox(
                       height: 5,
                     ),
-
-                    Divider(color: Colors.grey,),
-
-                    Row(
-                      children: [
-
-                        Expanded(
-                          flex: 1,
-                          child: Text('Add your rating:',style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-
-                        // Replace the TextField with StarRatingInput in your build method
-                        Expanded(
-                          flex: 2,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(5, (index) { // Assuming 5 is your max rating
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                child: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      currentRating = index + 1;
-                                      _ratingController.text = (currentRating * 20).toString();
-                                    });
-                                  },
-                                  icon: Icon(
-                                    index < currentRating ? Icons.star : Icons.star_border,
-                                    color: index < currentRating ? Colors.amber : Colors.grey,
-                                    size: 30,
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0),
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                createNewRating();
-                              },
-                              icon: Icon(
-                                Icons.star_border_purple500_rounded,
-                                color: Colors.white,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                fixedSize: const Size(160, 20),
-                                backgroundColor: Colors
-                                    .amberAccent, // Set the background color to green
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      30), // Set the border radius
-                                ),
-                              ),
-                              label: Text(
-                                'Add',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
+                    Divider(
+                      color: Colors.grey,
                     ),
-
-                    // Add more details as needed
                   ],
                 ),
               ),
@@ -533,7 +518,9 @@ class _OpenPostPageState extends State<OpenPostPage> {
   Widget buildStars(double rating) {
     List<Widget> stars = [];
     int fullStars = rating ~/ 20; // Each full star represents 20%
-    int halfStars = (rating % 20) >= 10 ? 1 : 0; // If remainder is 10% or more, show a half star
+    int halfStars = (rating % 20) >= 10
+        ? 1
+        : 0; // If remainder is 10% or more, show a half star
     for (int i = 0; i < fullStars; i++) {
       stars.add(Icon(Icons.star, color: Colors.amber));
     }
@@ -546,7 +533,6 @@ class _OpenPostPageState extends State<OpenPostPage> {
     }
     return Row(children: stars);
   }
-
 }
 
 class Comment {
@@ -558,10 +544,9 @@ class Comment {
 
   factory Comment.fromMap(Map<String, dynamic> data) {
     return Comment(
-      user: data['user'] ?? '',
-      comment: data['comment'] ?? '',
-      pres:data['pres'] ?? ''
-    );
+        user: data['user'] ?? '',
+        comment: data['comment'] ?? '',
+        pres: data['pres'] ?? '');
   }
 }
 
@@ -571,7 +556,11 @@ class Rating {
   String ratingValue;
   String status;
 
-  Rating({required this.user, required this.email, required this.ratingValue, required this.status});
+  Rating(
+      {required this.user,
+      required this.email,
+      required this.ratingValue,
+      required this.status});
 
   factory Rating.fromMap(Map<String, dynamic> data) {
     return Rating(
@@ -582,7 +571,3 @@ class Rating {
     );
   }
 }
-
-
-
-

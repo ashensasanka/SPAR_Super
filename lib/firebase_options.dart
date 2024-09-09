@@ -41,51 +41,52 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB0xCeIcciLzUfEJ51m6d7WEk0-o8UstdQ',
-    appId: '1:50631697180:web:d6d0c1556f47ca97bb10d9',
-    messagingSenderId: '50631697180',
-    projectId: 'waste-e0038',
-    authDomain: 'waste-e0038.firebaseapp.com',
-    databaseURL: 'https://waste-e0038-default-rtdb.firebaseio.com',
-    storageBucket: 'waste-e0038.appspot.com',
+    apiKey: 'AIzaSyA4SBejeEkSLNhgPOLtXOkAHQc7fLRiJok',
+    appId: '1:744508919883:web:37b36f5b16e66278d77dce',
+    messagingSenderId: '744508919883',
+    projectId: 'spar-464a9',
+    authDomain: 'spar-464a9.firebaseapp.com',
+    databaseURL: 'https://spar-464a9-default-rtdb.firebaseio.com',
+    storageBucket: 'spar-464a9.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBE1SRONjw5yGDhASLs0Wm3eeolyYPvunk',
-    appId: '1:50631697180:android:7eebd197b521751fbb10d9',
-    messagingSenderId: '50631697180',
-    projectId: 'waste-e0038',
-    databaseURL: 'https://waste-e0038-default-rtdb.firebaseio.com',
-    storageBucket: 'waste-e0038.appspot.com',
+    apiKey: 'AIzaSyDCXxoDlYSj_NiqNvd-3Swczno70eaunbs',
+    appId: '1:744508919883:android:68e8d13e99ae94ebd77dce',
+    messagingSenderId: '744508919883',
+    projectId: 'spar-464a9',
+    databaseURL: 'https://spar-464a9-default-rtdb.firebaseio.com',
+    storageBucket: 'spar-464a9.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCYoxambOt1nGS5crk2jdPiAAK4krJ1vrA',
-    appId: '1:50631697180:ios:27aabc83a052d7a6bb10d9',
-    messagingSenderId: '50631697180',
-    projectId: 'waste-e0038',
-    databaseURL: 'https://waste-e0038-default-rtdb.firebaseio.com',
-    storageBucket: 'waste-e0038.appspot.com',
+    apiKey: 'AIzaSyAU0ZMMoaCHs0IEo_1FiqmUhplVzZxb41o',
+    appId: '1:744508919883:ios:db1b4a142cdcf248d77dce',
+    messagingSenderId: '744508919883',
+    projectId: 'spar-464a9',
+    databaseURL: 'https://spar-464a9-default-rtdb.firebaseio.com',
+    storageBucket: 'spar-464a9.appspot.com',
     iosBundleId: 'com.example.wasteManagement',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCYoxambOt1nGS5crk2jdPiAAK4krJ1vrA',
-    appId: '1:50631697180:ios:27aabc83a052d7a6bb10d9',
-    messagingSenderId: '50631697180',
-    projectId: 'waste-e0038',
-    databaseURL: 'https://waste-e0038-default-rtdb.firebaseio.com',
-    storageBucket: 'waste-e0038.appspot.com',
+    apiKey: 'AIzaSyAU0ZMMoaCHs0IEo_1FiqmUhplVzZxb41o',
+    appId: '1:744508919883:ios:db1b4a142cdcf248d77dce',
+    messagingSenderId: '744508919883',
+    projectId: 'spar-464a9',
+    databaseURL: 'https://spar-464a9-default-rtdb.firebaseio.com',
+    storageBucket: 'spar-464a9.appspot.com',
     iosBundleId: 'com.example.wasteManagement',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyB0xCeIcciLzUfEJ51m6d7WEk0-o8UstdQ',
-    appId: '1:50631697180:web:287efce1d81a8f5dbb10d9',
-    messagingSenderId: '50631697180',
-    projectId: 'waste-e0038',
-    authDomain: 'waste-e0038.firebaseapp.com',
-    databaseURL: 'https://waste-e0038-default-rtdb.firebaseio.com',
-    storageBucket: 'waste-e0038.appspot.com',
+    apiKey: 'AIzaSyA4SBejeEkSLNhgPOLtXOkAHQc7fLRiJok',
+    appId: '1:744508919883:web:244f4dc0dabccad2d77dce',
+    messagingSenderId: '744508919883',
+    projectId: 'spar-464a9',
+    authDomain: 'spar-464a9.firebaseapp.com',
+    databaseURL: 'https://spar-464a9-default-rtdb.firebaseio.com',
+    storageBucket: 'spar-464a9.appspot.com',
   );
+
 }

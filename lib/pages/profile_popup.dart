@@ -12,18 +12,13 @@ class ProfilePopUp extends StatefulWidget {
 }
 
 class _ProfilePopUpState extends State<ProfilePopUp> {
-
-
-
-
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-
         Positioned(
-          top: 50, // Adjust this value to change the vertical position
-          right: 5, // Adjust this value to change the horizontal position
+          top: 50,
+          right: 5,
           child: AlertDialog(
             content: SizedBox(
               height: 380,
@@ -33,7 +28,10 @@ class _ProfilePopUpState extends State<ProfilePopUp> {
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.account_circle_sharp, size: 120,)
+                      Icon(
+                        Icons.account_circle_sharp,
+                        size: 120,
+                      )
                     ],
                   ),
                   const SizedBox(
@@ -55,7 +53,18 @@ class _ProfilePopUpState extends State<ProfilePopUp> {
                     children: [
                       Text(
                         userEmail,
-                        style:  TextStyle(
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        role,
+                        style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],
                         ),
@@ -65,11 +74,9 @@ class _ProfilePopUpState extends State<ProfilePopUp> {
                   const SizedBox(
                     height: 20,
                   ),
-
                   const SizedBox(
                     height: 50,
                   ),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -84,26 +91,23 @@ class _ProfilePopUpState extends State<ProfilePopUp> {
                             //   context,
                             //   MaterialPageRoute(builder: (context) => const ResetPasswordOne()),
                             // );
-
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.grey,
                             backgroundColor: Colors.blueGrey.shade50,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // Rounded corners
+                              borderRadius:
+                                  BorderRadius.circular(5), // Rounded corners
                             ),
                           ),
-                          child: const
-                          Text('View Profile',
+                          child: const Text(
+                            'View Profile',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-
-
                       ),
-
                       Container(
                         height: 40,
                         width: 140,
@@ -111,38 +115,29 @@ class _ProfilePopUpState extends State<ProfilePopUp> {
                         child: ElevatedButton(
                           onPressed: () async {
                             FirebaseAuth.instance.signOut();
-                            Navigator.of(context)
-                                .pushNamed('/welcome');
-
-
+                            Navigator.of(context).pushNamed('/welcome');
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.grey,
                             backgroundColor: Colors.blueGrey.shade50,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // Rounded corners
+                              borderRadius:
+                                  BorderRadius.circular(5), // Rounded corners
                             ),
                           ),
-                          child: const
-                          Text('Logout',
+                          child: const Text(
+                            'Logout',
                             style: TextStyle(
-                                fontWeight: FontWeight.bold,color: Colors.redAccent
-                            ),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.redAccent),
                           ),
                         ),
-
-
                       ),
-
-
                     ],
                   ),
-
                 ],
               ),
             ),
-
-
           ),
         ),
       ],

@@ -5,17 +5,19 @@ import 'package:waste_management/pages/profile_popup.dart';
 import '../colors.dart';
 import '../comman_var.dart';
 import '../commonMethods.dart';
+import 'customer_details_page.dart';
 import 'landing_page.dart';
-import 'openPost_page.dart';
+import 'manager_home_page.dart';
+import 'manufa_details_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class CustomerHomePage extends StatefulWidget {
+  const CustomerHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<CustomerHomePage> createState() => _CustomerHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _CustomerHomePageState extends State<CustomerHomePage> {
   TextEditingController searchController = TextEditingController();
   List<Post> _posts = [];
 
@@ -26,41 +28,39 @@ class _HomePageState extends State<HomePage> {
     _fetchPosts();
   }
 
-  getUserInfoAndCheckBlockStatus() async{
-    DatabaseReference userRef = FirebaseDatabase.instance.ref()
+  getUserInfoAndCheckBlockStatus() async {
+    DatabaseReference userRef = FirebaseDatabase.instance
+        .ref()
         .child('users')
         .child(FirebaseAuth.instance.currentUser!.uid);
 
-    await userRef.once().then((snap){
-      if(snap.snapshot.value!=null){
-        if((snap.snapshot.value as Map)['blockStatus']=='no'){
-          setState(() {
-            userName = (snap.snapshot.value as Map)['name'];
-            userEmail = (snap.snapshot.value as Map)['email'];
-          });
-
-        }
-        else{
-          snackBar(context, 'You are blocked, Contact admin!',
-              Colors.redAccent);
+    await userRef.once().then(
+      (snap) {
+        if (snap.snapshot.value != null) {
+          if ((snap.snapshot.value as Map)['blockStatus'] == 'no') {
+            setState(() {
+              userName = (snap.snapshot.value as Map)['name'];
+              userEmail = (snap.snapshot.value as Map)['email'];
+              role = (snap.snapshot.value as Map)['role'];
+            });
+          } else {
+            snackBar(
+                context, 'You are blocked, Contact admin!', Colors.redAccent);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LandingPage()),
+            );
+            FirebaseAuth.instance.signOut();
+          }
+        } else {
+          FirebaseAuth.instance.signOut();
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => LandingPage()),
           );
-
-          FirebaseAuth.instance.signOut();
-
         }
-
-      }
-      else{
-        FirebaseAuth.instance.signOut();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => LandingPage()),
-        );
-      }
-    });
+      },
+    );
   }
 
   Future<void> _fetchPosts() async {
@@ -70,27 +70,28 @@ class _HomePageState extends State<HomePage> {
     if (event.snapshot.exists) {
       final postsData = Map<String, dynamic>.from(event.snapshot.value as Map);
       final List<Post> loadedPosts = [];
-      postsData.forEach((postId, postData) {
-        // Convert postData to a Map and then to a Post object
-        final post = Post.fromMap(Map<String, dynamic>.from(postData), postId);
-        loadedPosts.add(post);
+      postsData.forEach(
+        (postId, postData) {
+          // Convert postData to a Map and then to a Post object
+          final post =
+              Post.fromMap(Map<String, dynamic>.from(postData), postId);
+          loadedPosts.add(post);
 
-        // Assuming 'photos' is a List<String> of image URLs in your Post model
-        if (post.photos.isNotEmpty) {
-          print("Image URLs for Post $postId: ${post.photos}");
-        } else {
-          print("No image URLs found for Post $postId");
-        }
-      });
-
-      setState(() {
-        _posts = loadedPosts;
-      });
+          // Assuming 'photos' is a List<String> of image URLs in your Post model
+          if (post.photos.isNotEmpty) {
+            print("Image URLs for Post $postId: ${post.photos}");
+          } else {
+            print("No image URLs found for Post $postId");
+          }
+        },
+      );
+      setState(
+        () {
+          _posts = loadedPosts;
+        },
+      );
     }
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +106,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: Text(
-                'SPAR Product Management',
+                'SPAR',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -152,20 +153,22 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'View Details',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  )),
+                onPressed: () {},
+                child: Text(
+                  'View Details',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Share Your',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  )),
+                onPressed: () {},
+                child: Text(
+                  'Share Your',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
             )
           ],
         ),
@@ -177,43 +180,20 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: IconButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return const ProfilePopUp();
-                    },
-                  );
-                },
-                icon: Icon(
-                  Icons.person_pin,
-                  color: Colors.white,
-                )),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed('/post-item');
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const ProfilePopUp();
+                  },
+                );
               },
-              child: const Text(
-                'Post Your Item',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                fixedSize: const Size(160, 20),
-                backgroundColor:
-                    Colors.amberAccent, // Set the background color to green
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(30), // Set the border radius
-                ),
+              icon: Icon(
+                Icons.person_pin,
+                color: Colors.white,
               ),
             ),
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -241,7 +221,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-
                 Positioned.fill(
                   child: Center(
                     child: Column(
@@ -274,11 +253,12 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
 
-
             // Replace your existing ListView.builder with this GridView.builder
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 25),
-              height: MediaQuery.of(context).size.height, // You might want to adjust this
+              margin: EdgeInsets.symmetric(horizontal: 125),
+              height: MediaQuery.of(context)
+                  .size
+                  .height, // You might want to adjust this
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4, // Number of columns
@@ -287,11 +267,13 @@ class _HomePageState extends State<HomePage> {
                 ),
                 itemCount: _posts.length, // The count of posts to display
                 itemBuilder: (context, index) {
-                  final post = _posts[index]; // Access the current post in the loop
+                  final post =
+                      _posts[index]; // Access the current post in the loop
                   return InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => OpenPostPage(post: post),
+                    onTap: () async {
+                     await _fetchPosts();
+                     await Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => CustomerDetailsShowPage(post: post),
                       ));
                     },
                     child: GridTile(
@@ -300,12 +282,21 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Text(post.model, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                post.title,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                             // Example of displaying the first photo if available
                             if (post.photos.isNotEmpty)
                               Expanded(
-                                child: Image.network(post.photos.first, fit: BoxFit.cover),
+                                child: Image.network(
+                                  post.photos.first,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                           ],
                         ),
@@ -315,7 +306,6 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
-
 
             // Image.network(
             //   "https://firebasestorage.googleapis.com/v0/b/rating-system-24f88.appspot.com/o/Images%2F180082%2F1711221829099?alt=media&token=5eedccc9-9f2f-4e97-9085-db4e9cb01f71",
@@ -329,39 +319,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
-
-class Post {
-  final String itemId, itemType, title, description, price,deviceType,model,postID;
-  final List<String> photos; // List of image URLs
-
-  Post({
-    required this.itemId,
-    required this.itemType,
-    required this.title,
-    required this.description,
-    required this.price,
-    required this.deviceType,
-    required this.model,
-    required this.postID,
-    required this.photos,
-  });
-
-  // Factory constructor to create a Post instance from a Map
-  factory Post.fromMap(Map<String, dynamic> map, String itemId) {
-    return Post(
-      itemId: itemId,
-      itemType: map['itemType'] ?? '',
-      title: map['title'] ?? '',
-      description: map['description'] ?? '',
-      price: map['price'] ?? '',
-      deviceType: map['deviceType'] ?? '',
-      model: map['model'] ?? '',
-      postID: map['postID'] ?? '',
-      photos: List<String>.from(map['photos'] ?? []),
-    );
-  }
-}
-
-

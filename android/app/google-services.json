@@ -1,14 +1,14 @@
 {
   "project_info": {
-    "project_number": "50631697180",
-    "firebase_url": "https://waste-e0038-default-rtdb.firebaseio.com",
-    "project_id": "waste-e0038",
-    "storage_bucket": "waste-e0038.appspot.com"
+    "project_number": "744508919883",
+    "firebase_url": "https://spar-464a9-default-rtdb.firebaseio.com",
+    "project_id": "spar-464a9",
+    "storage_bucket": "spar-464a9.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:50631697180:android:7eebd197b521751fbb10d9",
+        "mobilesdk_app_id": "1:744508919883:android:68e8d13e99ae94ebd77dce",
         "android_client_info": {
           "package_name": "com.example.waste_management"
         }
@@ -16,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBE1SRONjw5yGDhASLs0Wm3eeolyYPvunk"
+          "current_key": "AIzaSyDCXxoDlYSj_NiqNvd-3Swczno70eaunbs"
         }
       ],
       "services": {

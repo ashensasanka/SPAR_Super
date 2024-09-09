@@ -1,8 +1,10 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:waste_management/auth_pages/learner_auth.dart';
 import '../Components/custom_snackBar.dart';
 import '../Components/glass_box.dart';
 import '../Components/loading.dart';
@@ -26,6 +28,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final FocusNode _confirmPasswordFocusNode = FocusNode();
 
   CommonMethods cMethods = CommonMethods();
+
+  var options = ['Customer', 'Manufacturer', 'Store Manager'];
+  var role = "Customer";
 
   @override
   void dispose() {
@@ -85,10 +90,16 @@ class _SignUpPageState extends State<SignUpPage> {
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
     )
-            .catchError((errorMsg) {
-      Navigator.pop(context);
-      snackBar(context, errorMsg.toString(), Colors.red);
-    }))
+            .catchError(
+      (errorMsg) {
+        Navigator.pop(context);
+        snackBar(
+          context,
+          errorMsg.toString(),
+          Colors.red,
+        );
+      },
+    ))
         .user;
 
     if (!context.mounted) return;
@@ -101,14 +112,29 @@ class _SignUpPageState extends State<SignUpPage> {
       "email": emailController.text.trim(),
       "id": userFirebase.uid,
       "blockStatus": "no",
+      "role": role
     };
     userRef.set(userDataMap);
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
+    CollectionReference ref_profile =
+        FirebaseFirestore.instance.collection('users');
+    ref_profile.doc(userFirebase!.uid).set(
+      {
+        "name": userNameController.text.trim(),
+        "email": emailController.text.trim(),
+        "id": userFirebase.uid,
+        "blockStatus": "no",
+        "role": role
+      },
     );
 
+    if (role == 'Customer') {
+      Navigator.of(context).pushNamed('/customer');
+    } else if (role == 'Manufacturer') {
+      Navigator.of(context).pushNamed('/manufacturer');
+    } else {
+      Navigator.of(context).pushNamed('/manager');
+    }
     showCustomSnackBar(context,
         message: 'Account created, you can Login now!',
         backgroundColor: Colors.green.shade500,
@@ -116,116 +142,121 @@ class _SignUpPageState extends State<SignUpPage> {
         icon: Icons.check_circle_outline_rounded);
   }
 
+  signInWithGoogle() async {
+    GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
+    GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+    AuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInWithCredential(credential);
+
+    print(userCredential.user?.displayName);
+
+    if (userCredential.user != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginPage(),
+        ),
+      );
+    }
+  }
 
   void showSuccessSnackBar(BuildContext context) {
     final snackBar = SnackBar(
-      backgroundColor: Colors.green, // Custom background color
-      content: Row(
+      backgroundColor: Colors.green,
+      content: const Row(
         children: [
-          Icon(Icons.check_circle_outline, color: Colors.white), // Custom icon
-          SizedBox(width: 8), // Space between icon and text
+          Icon(Icons.check_circle_outline, color: Colors.white),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               'Account created successful! You can login now!',
-              style: TextStyle(
-                  color: Colors.white, fontSize: 16), // Custom text style
+              style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           ),
         ],
       ),
       action: SnackBarAction(
         label: 'Undo',
-        textColor: Colors.white, // Custom text color for the action
-        onPressed: () {
-          // Handle action (e.g., undo the submission)
-        },
+        textColor: Colors.white,
+        onPressed: () {},
       ),
-      duration: Duration(seconds: 5), // Custom duration
-      behavior: SnackBarBehavior.floating, // Make it floating
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)), // Custom shape
-      margin: EdgeInsets.all(10), // Margin from the edges
-      padding:
-          EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Custom padding
+      duration: const Duration(seconds: 5),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void showRequiredFieldsSnackBar(BuildContext context) {
     final snackBar = SnackBar(
-      backgroundColor: Colors.red, // Custom background color for emphasis
-      content: Row(
+      backgroundColor: Colors.red,
+      content: const Row(
         children: [
-          Icon(Icons.warning_amber_outlined,
-              color: Colors.white), // Custom icon for warning
-          SizedBox(width: 8), // Space between icon and text
+          Icon(Icons.warning_amber_outlined, color: Colors.white),
+          SizedBox(width: 8),
           Text(
-            'Please fill in all required fields', // The message
-            style: TextStyle(
-                color: Colors.white, fontSize: 16), // Custom text style
+            'Please fill in all required fields',
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
       ),
-      duration: Duration(seconds: 5), // Custom duration
-      behavior: SnackBarBehavior.floating, // Make it floating
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)), // Custom shape
-      margin: EdgeInsets.all(10), // Margin from the edges
-      padding:
-          EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Custom padding
+      duration: Duration(seconds: 5),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void showError(BuildContext context) {
     final snackBar = SnackBar(
-      backgroundColor: Colors.red, // Custom background color for emphasis
-      content: Row(
+      backgroundColor: Colors.red,
+      content: const Row(
         children: [
-          Icon(Icons.warning_amber_outlined,
-              color: Colors.white), // Custom icon for warning
-          SizedBox(width: 8), // Space between icon and text
+          Icon(Icons.warning_amber_outlined, color: Colors.white),
+          SizedBox(width: 8),
           Text(
-            'Error', // The message
-            style: TextStyle(
-                color: Colors.white, fontSize: 16), // Custom text style
+            'Error',
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
       ),
-      duration: Duration(seconds: 5), // Custom duration
-      behavior: SnackBarBehavior.floating, // Make it floating
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)), // Custom shape
-      margin: EdgeInsets.all(10), // Margin from the edges
-      padding:
-          EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Custom padding
+      duration: Duration(seconds: 5),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void showPasswordMismatchSnackBar(BuildContext context) {
     final snackBar = SnackBar(
-      backgroundColor: Colors.red, // Custom background color for emphasis
-      content: Row(
+      backgroundColor: Colors.red,
+      content: const Row(
         children: [
-          Icon(Icons.error_outline,
-              color: Colors.white), // Custom icon for error
-          SizedBox(width: 8), // Space between icon and text
+          Icon(Icons.error_outline, color: Colors.white),
+          SizedBox(width: 8),
           Text(
-            'Passwords do not match', // The message
-            style: TextStyle(
-                color: Colors.white, fontSize: 16), // Custom text style
+            'Passwords do not match',
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
       ),
-      duration: Duration(seconds: 5), // Custom duration
+      duration: Duration(seconds: 5),
       behavior: SnackBarBehavior.floating, // Make it floating
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)), // Custom shape
-      margin: EdgeInsets.all(10), // Margin from the edges
-      padding:
-          EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Custom padding
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
@@ -241,9 +272,8 @@ class _SignUpPageState extends State<SignUpPage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(0),
               image: DecorationImage(
-                image: AssetImage(
-                    'images/background.jpg'), // Replace with your image path
-                fit: BoxFit.cover, // Adjust the BoxFit as needed
+                image: AssetImage('images/background.jpg'),
+                fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.black.withOpacity(0.6),
                   BlendMode.srcOver,
@@ -256,367 +286,404 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Row(
                 children: [
                   Expanded(
-                      child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Roll the Carpet.!',
-                          style: TextStyle(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Roll the Carpet.!',
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              fontSize: 48),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed('/welcome');
-                            // Action when button is pressed
-                          },
-                          child: Row(
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 5.0),
-                                child: Text(
-                                  'Skip the Signup',
-                                  style: TextStyle(
-                                      fontSize: 16, color: Colors.white),
-                                ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            fixedSize: const Size(190, 40),
-                            backgroundColor: Colors
-                                .blue, // Set the background color to green
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  30), // Set the border radius
+                              fontSize: 48,
                             ),
                           ),
-                        )
-                      ],
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              signInWithGoogle();
+                              // Navigator.of(context).pushNamed('/welcome');
+                              // Action when button is pressed
+                            },
+                            style: ElevatedButton.styleFrom(
+                              fixedSize: const Size(190, 40),
+                              backgroundColor: Colors
+                                  .blue, // Set the background color to green
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Row(
+                              children: [
+                                Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 5.0),
+                                  child: Text(
+                                    'Skip the Signup',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.white),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
-                  )),
+                  ),
                   Expanded(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GlassBox(
-                        child: Padding(
-                          padding: const EdgeInsets.all(40.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Signup',
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              Text(
-                                'Glad you are back.!',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              TextField(
-                                onEditingComplete: () {
-                                  // Define what you want to do when editing is complete. For example:
-                                  FocusScope.of(context)
-                                      .nextFocus(); // Move focus to the next field
-                                },
-                                controller: userNameController,
-                                onChanged: (String value) {
-                                  // Implement your filtering logic here if needed
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'User Name',
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 15),
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GlassBox(
+                          width: 500,
+                          height: 600,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(40, 10, 40, 30),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Signup',
+                                  style: TextStyle(
+                                    fontSize: 36,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-
-                              TextField(
-                                onEditingComplete: () {
-                                  // Define what you want to do when editing is complete. For example:
-                                  FocusScope.of(context)
-                                      .nextFocus(); // Move focus to the next field
-                                },
-                                controller: emailController,
-                                onChanged: (String value) {
-                                  // Implement your filtering logic here if needed
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Your Email',
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 15),
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
+                                const SizedBox(
+                                  height: 5,
+                                ),
+                                const Text(
+                                  'Glad you are back.!',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              TextField(
-                                onEditingComplete: () {
-                                  // Move focus to the next field explicitly
-                                  _confirmPasswordFocusNode.requestFocus();
-                                },
-                                controller: passwordController,
-                                onChanged: (String value) {
-                                  // Implement your filtering logic here if needed
-                                },
-                                obscureText:
-                                    isObscure, // Set the obscureText property
-                                decoration: InputDecoration(
-                                  hintText: 'Enter your password',
-                                  suffixIcon: IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        isObscure =
-                                            !isObscure; // Toggle between show and hide password
-                                      });
-                                    },
-                                    icon: Icon(
-                                      isObscure
-                                          ? Icons.visibility_off_rounded
-                                          : Icons.remove_red_eye_rounded,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 15),
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                                const SizedBox(
+                                  height: 10,
                                 ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-
-                              TextField(
-                                focusNode: _confirmPasswordFocusNode,
-                                onEditingComplete: () {
-                                  // Define what you want to do when editing is complete. For example:
-                                  // createUser(context);
-                                },
-
-                                controller: confirmPasswordController,
-                                onChanged: (String value) {
-                                  // Implement your filtering logic here if needed
-                                },
-                                obscureText:
-                                    isObscure, // Set the obscureText property
-                                decoration: InputDecoration(
-                                  hintText: 'Confirm your password',
-                                  suffixIcon: IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        isObscure =
-                                            !isObscure; // Toggle between show and hide password
-                                      });
-                                    },
-                                    icon: Icon(
-                                      isObscure
-                                          ? Icons.visibility_off_rounded
-                                          : Icons.remove_red_eye_rounded,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 15),
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0, vertical: 20),
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      checkIfNetworkIsAvailable();
-                                      // createUser(context);
-                                      // Action when button is pressed
-                                    },
-                                    child: const Text(
-                                      'Signup',
-                                      style: TextStyle(
-                                        fontSize: 16,
+                                TextField(
+                                  onEditingComplete: () {
+                                    FocusScope.of(context).nextFocus();
+                                  },
+                                  controller: userNameController,
+                                  onChanged: (String value) {
+                                    // Implement your filtering logic here if needed
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: 'User Name',
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 15),
+                                    hintStyle: TextStyle(color: Colors.white),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
-                                    style: ElevatedButton.styleFrom(
-                                      fixedSize: const Size(240, 40),
-                                      backgroundColor: Colors
-                                          .blue, // Set the background color to green
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            30), // Set the border radius
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Divider(
-                                height: 2,
-                                color: Colors.white,
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-
-                              Center(
-                                  child: Image.asset(
-                                'images/google.png',
-                                width: 240,
-                              )),
-
-                              SizedBox(
-                                height: 10,
-                              ),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Already Registered? ",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.white,
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextField(
+                                  onEditingComplete: () {
+                                    // Define what you want to do when editing is complete. For example:
+                                    FocusScope.of(context)
+                                        .nextFocus(); // Move focus to the next field
+                                  },
+                                  controller: emailController,
+                                  onChanged: (String value) {
+                                    // Implement your filtering logic here if needed
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: 'Your Email',
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 15),
+                                    hintStyle: TextStyle(color: Colors.white),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pushNamed('/login');
-                                    },
-                                    child: Text(
-                                      "Login",
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextField(
+                                  onEditingComplete: () {
+                                    _confirmPasswordFocusNode.requestFocus();
+                                  },
+                                  controller: passwordController,
+                                  onChanged: (String value) {},
+                                  obscureText: isObscure,
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter your password',
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(
+                                          () {
+                                            isObscure = !isObscure;
+                                          },
+                                        );
+                                      },
+                                      icon: Icon(
+                                        isObscure
+                                            ? Icons.visibility_off_rounded
+                                            : Icons.remove_red_eye_rounded,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 15),
+                                    hintStyle: TextStyle(color: Colors.white),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextField(
+                                  focusNode: _confirmPasswordFocusNode,
+                                  onEditingComplete: () {
+                                    // Define what you want to do when editing is complete. For example:
+                                    // createUser(context);
+                                  },
+                                  controller: confirmPasswordController,
+                                  onChanged: (String value) {
+                                    // Implement your filtering logic here if needed
+                                  },
+                                  obscureText:
+                                      isObscure, // Set the obscureText property
+                                  decoration: InputDecoration(
+                                    hintText: 'Confirm your password',
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(
+                                          () {
+                                            isObscure =
+                                                !isObscure; // Toggle between show and hide password
+                                          },
+                                        );
+                                      },
+                                      icon: Icon(
+                                        isObscure
+                                            ? Icons.visibility_off_rounded
+                                            : Icons.remove_red_eye_rounded,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 15),
+                                    hintStyle: TextStyle(color: Colors.white),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Center(
+                                  child: Container(
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.white, // Border color
+                                        width: 1.0, // Border width
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                          5.0), // Border radius (optional)
+                                    ),
+                                    child: Center(
+                                      child: DropdownButton<String>(
+                                        dropdownColor: Color(0xff63676a),
+                                        style: const TextStyle(),
+                                        isDense: true,
+                                        isExpanded: false,
+                                        iconEnabledColor: Colors.white,
+                                        focusColor: Colors.white,
+                                        items: options.map(
+                                          (String dropDownStringItem) {
+                                            return DropdownMenuItem<String>(
+                                              value: dropDownStringItem,
+                                              child: Text(
+                                                dropDownStringItem,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 18,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ).toList(),
+                                        onChanged: (newValueSelected) {
+                                          setState(
+                                            () {
+                                              role = newValueSelected!;
+                                            },
+                                          );
+                                        },
+                                        value: role,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0, vertical: 15),
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        checkIfNetworkIsAvailable();
+                                        // createUser(context);
+                                        // Action when button is pressed
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        fixedSize: const Size(240, 40),
+                                        backgroundColor: Colors
+                                            .blue, // Set the background color to green
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              30), // Set the border radius
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Signup',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Divider(
+                                  height: 2,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                // GestureDetector(
+                                //   onTap: (){
+                                //     signInWithGoogle();
+                                //   },
+                                //   child: Center(
+                                //     child: Image.asset(
+                                //       'images/google.png',
+                                //       width: 240,
+                                //     ),
+                                //   ),
+                                // ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      "Already Registered? ",
                                       style: TextStyle(
                                         fontSize: 18,
                                         color: Colors.white,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              )
-
-                              // Container(
-                              //   margin: EdgeInsets.all(10),
-                              //   width: 240,
-                              //   decoration: BoxDecoration(
-                              //     image: DecorationImage(
-                              //       image:/ Replace with your image path
-                              //       fit: BoxFit.cover, // Adjust the BoxFit as needed
-                              //     ),
-                              //   ),
-                              // )
-                            ],
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pushNamed('/login');
+                                      },
+                                      child: const Text(
+                                        "Login",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        width: 500,
-                        height: 600,
-                      )
-                    ],
-                  ))
+                        )
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

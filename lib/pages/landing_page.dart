@@ -8,7 +8,8 @@ import '../Components/custom_snackBar.dart';
 import '../Components/loading.dart';
 import '../colors.dart';
 import '../comman_var.dart';
-import 'home_page.dart';
+import 'customer_home_page.dart';
+import 'manager_home_page.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({Key? key}) : super(key: key);
