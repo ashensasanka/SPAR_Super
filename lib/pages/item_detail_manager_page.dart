@@ -434,7 +434,7 @@ class _ManagerDetailsPageState extends State<ManagerDetailsPage> {
                               Text(
                                   'Positive : ${averagePres1.toStringAsFixed(2)} %'),
                               SizedBox(
-                                width: 430,
+                                width: 380,
                               ),
                               Text('Nagative'),
                             ],

@@ -347,7 +347,7 @@ class _CustomerDetailsShowPageState extends State<CustomerDetailsShowPage> {
                               Text(
                                   'Positive : ${averagePres1.toStringAsFixed(2)} %'),
                               SizedBox(
-                                width: 430,
+                                width: 380,
                               ),
                               Text('Nagative'),
                             ],
