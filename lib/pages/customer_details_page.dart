@@ -273,7 +273,7 @@ class _CustomerDetailsShowPageState extends State<CustomerDetailsShowPage> {
                       height: 10,
                     ),
                     Text(
-                      'Price:   Rs.${widget.post.price}.00',
+                      'Price:   Rs.${widget.post.price}',
                       style:
                           TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
@@ -361,7 +361,7 @@ class _CustomerDetailsShowPageState extends State<CustomerDetailsShowPage> {
                             child: Row(
                               children: [
                                 Expanded(
-                                  flex: 4,
+                                  flex: 3,
                                   child: TextField(
                                     controller: _commentController,
                                     decoration: InputDecoration(

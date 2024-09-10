@@ -324,7 +324,7 @@ class _ManagerDetailsPageState extends State<ManagerDetailsPage> {
                       height: 10,
                     ),
                     Text(
-                      'Next Mounth Predictive Count:  ${widget.post.predictive}',
+                      'Next Mounth Predictive Count:  ${widget.post.predictive.toStringAsFixed(3)}',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,

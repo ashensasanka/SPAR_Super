@@ -338,7 +338,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
                                 Padding(
                                   padding: const EdgeInsets.all(4.0),
                                   child: Text(
-                                    "Next Mounth Predictive Count: ${posts.predictive}",
+                                    "Next Mounth Predictive Count: ${posts.predictive.toStringAsFixed(3)}",
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
