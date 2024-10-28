@@ -7,6 +7,7 @@ import '../comman_var.dart';
 import '../function.dart';
 import 'customer_home_page.dart';
 import 'manager_home_page.dart';
+import 'dart:math';
 
 class CustomerDetailsShowPage extends StatefulWidget {
   final Post post;
@@ -89,18 +90,25 @@ class _CustomerDetailsShowPageState extends State<CustomerDetailsShowPage> {
   }
 
   FirebaseDatabase _firestore = FirebaseDatabase.instance;
+
   Future<bool> isdone() async {
-    double addSold = widget.post.sold +1;
-    double addPredict = (((addSold+widget.post.available)/widget.post.available)+5)*2;
+    double addSold = widget.post.sold + 1;
+
+    // Generate a random number between 1 and 10
+    int randomNum = Random().nextInt(10) + 1;
+
+    // Add the random number to the addPredict calculation
+    double addPredict = (((addSold + widget.post.available) / widget.post.available) + 5) * 2 + randomNum;
+
     try {
       await _firestore
           .ref()
           .child("posts/${widget.post.postID}")
-          .update({'sold': addSold,"predictive":addPredict});
+          .update({'sold': addSold, "predictive": addPredict});
       return true;
     } catch (e) {
       print(e);
-      return true;
+      return false;
     }
   }
 
